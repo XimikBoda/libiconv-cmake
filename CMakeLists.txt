@@ -103,6 +103,8 @@ set(${libname}_sources
 
 add_library(${libname} ${${libname}_sources})
 target_link_libraries(${libname} libcharset)
+target_include_directories(${libname} PUBLIC ${Libiconv_BINARY_DIR}/)
+
 list(APPEND Libiconv_TARGETS ${libname})
 list(APPEND Libiconv_headers ${Libiconv_BINARY_DIR}/iconv.h)
 
