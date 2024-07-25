@@ -2,7 +2,7 @@
 ## CMake support for libiconv
 ##
 
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.8)
 project(Libiconv)
 
 #
@@ -26,15 +26,19 @@ macro(header_injection_hack)
     "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
   )
   string(TOUPPER ${hack_LIBRARY_NAME} hack_library_name_upper)
-  set(HAVE_VISIBILITY
-  "WIN32
-    #if defined(${hack_LIBRARY_NAME}_EXPORTS)
-      #define ${hack_library_name_upper}_DLL_EXPORTED __declspec(dllexport)
-    #else
-      #define ${hack_library_name_upper}_DLL_EXPORTED __declspec(dllimport)
-    #endif
-  #elif true"
-  )
+  if(BUILD_SHARED_LIBS)
+      set(HAVE_VISIBILITY
+      "WIN32
+        #if defined(${hack_LIBRARY_NAME}_EXPORTS)
+          #define ${hack_library_name_upper}_DLL_EXPORTED __declspec(dllexport)
+        #else
+          #define ${hack_library_name_upper}_DLL_EXPORTED __declspec(dllimport)
+        #endif
+      #elif true"
+      )
+  else() 
+     set(HAVE_VISIBILITY "FALSE")
+  endif()
   configure_file(
     ${hack_INPUT}
     ${hack_OUTPUT}
