@@ -1,21 +1,20 @@
 /*
- * Copyright (C) 1999-2008, 2011 Free Software Foundation, Inc.
+ * Copyright (C) 1999-2008, 2011, 2018, 2020 Free Software Foundation, Inc.
  * This file is part of the GNU LIBICONV Library.
  *
  * The GNU LIBICONV Library is free software; you can redistribute it
- * and/or modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either version 2
+ * and/or modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either version 2.1
  * of the License, or (at your option) any later version.
  *
  * The GNU LIBICONV Library is distributed in the hope that it will be
  * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public
+ * You should have received a copy of the GNU Lesser General Public
  * License along with the GNU LIBICONV Library; see the file COPYING.LIB.
- * If not, write to the Free Software Foundation, Inc., 51 Franklin Street,
- * Fifth Floor, Boston, MA 02110-1301, USA.
+ * If not, see <https://www.gnu.org/licenses/>.
  */
 
 /* Part 1 of iconv_open.
@@ -47,7 +46,7 @@
   for (to_wchar = 0;;) {
     /* Search tocode in the table. */
     for (cp = tocode, bp = buf, count = MAX_WORD_LENGTH+10+1; ; cp++, bp++) {
-      unsigned char c = * (unsigned char *) cp;
+      unsigned char c = (unsigned char) *cp;
       if (c >= 0x80)
         goto invalid;
       if (c >= 'a' && c <= 'z')
@@ -99,7 +98,7 @@
       /* On systems which define __STDC_ISO_10646__, wchar_t is Unicode.
          This is also the case on native Woe32 systems and Cygwin >= 1.7, where
          we know that it is UTF-16.  */
-#if ((defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__) || (defined __CYGWIN__ && CYGWIN_VERSION_DLL_MAJOR >= 1007)
+#if (defined _WIN32 && !defined __CYGWIN__) || (defined __CYGWIN__ && CYGWIN_VERSION_DLL_MAJOR >= 1007)
       if (sizeof(wchar_t) == 4) {
         to_index = ei_ucs4internal;
         break;
@@ -139,7 +138,7 @@
   for (from_wchar = 0;;) {
     /* Search fromcode in the table. */
     for (cp = fromcode, bp = buf, count = MAX_WORD_LENGTH+10+1; ; cp++, bp++) {
-      unsigned char c = * (unsigned char *) cp;
+      unsigned char c = (unsigned char) *cp;
       if (c >= 0x80)
         goto invalid;
       if (c >= 'a' && c <= 'z')
@@ -189,7 +188,7 @@
       /* On systems which define __STDC_ISO_10646__, wchar_t is Unicode.
          This is also the case on native Woe32 systems and Cygwin >= 1.7, where
          we know that it is UTF-16.  */
-#if ((defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__) || (defined __CYGWIN__ && CYGWIN_VERSION_DLL_MAJOR >= 1007)
+#if (defined _WIN32 && !defined __CYGWIN__) || (defined __CYGWIN__ && CYGWIN_VERSION_DLL_MAJOR >= 1007)
       if (sizeof(wchar_t) == 4) {
         from_index = ei_ucs4internal;
         break;

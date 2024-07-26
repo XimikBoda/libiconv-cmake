@@ -1,19 +1,19 @@
 /* POSIX compatible signal blocking.
-   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -24,11 +24,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+# include "msvc-inval.h"
+#endif
+
 /* We assume that a platform without POSIX signal blocking functions
    also does not have the POSIX sigaction() function, only the
    signal() function.  We also assume signal() has SysV semantics,
    where any handler is uninstalled prior to being invoked.  This is
-   true for Woe32 platforms.  */
+   true for native Windows platforms.  */
 
 /* We use raw signal(), but also provide a wrapper rpl_signal() so
    that applications can query or change a blocked signal.  */
@@ -46,7 +50,7 @@
 /* On native Windows, as of 2008, the signal SIGABRT_COMPAT is an alias
    for the signal SIGABRT.  Only one signal handler is stored for both
    SIGABRT and SIGABRT_COMPAT.  SIGABRT_COMPAT is not a signal of its own.  */
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 # undef SIGABRT_COMPAT
 # define SIGABRT_COMPAT 6
 #endif
@@ -57,6 +61,28 @@
 #endif
 
 typedef void (*handler_t) (int);
+
+#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+static handler_t
+signal_nothrow (int sig, handler_t handler)
+{
+  handler_t result;
+
+  TRY_MSVC_INVAL
+    {
+      result = signal (sig, handler);
+    }
+  CATCH_MSVC_INVAL
+    {
+      result = SIG_ERR;
+      errno = EINVAL;
+    }
+  DONE_MSVC_INVAL;
+
+  return result;
+}
+# define signal signal_nothrow
+#endif
 
 /* Handling of gnulib defined signals.  */
 
@@ -80,6 +106,7 @@ ext_signal (int sig, handler_t handler)
       return signal (sig, handler);
     }
 }
+# undef signal
 # define signal ext_signal
 #endif
 
@@ -303,27 +330,20 @@ rpl_signal (int sig, handler_t handler)
 }
 
 #if GNULIB_defined_SIGPIPE
-/* Raise the signal SIG.  */
+/* Raise the signal SIGPIPE.  */
 int
-rpl_raise (int sig)
-# undef raise
+_gl_raise_SIGPIPE (void)
 {
-  switch (sig)
+  if (blocked_set & (1U << SIGPIPE))
+    pending_array[SIGPIPE] = 1;
+  else
     {
-    case SIGPIPE:
-      if (blocked_set & (1U << sig))
-        pending_array[sig] = 1;
-      else
-        {
-          handler_t handler = SIGPIPE_handler;
-          if (handler == SIG_DFL)
-            exit (128 + SIGPIPE);
-          else if (handler != SIG_IGN)
-            (*handler) (sig);
-        }
-      return 0;
-    default: /* System defined signal */
-      return raise (sig);
+      handler_t handler = SIGPIPE_handler;
+      if (handler == SIG_DFL)
+        exit (128 + SIGPIPE);
+      else if (handler != SIG_IGN)
+        (*handler) (SIGPIPE);
     }
+  return 0;
 }
 #endif

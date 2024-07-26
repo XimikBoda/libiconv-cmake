@@ -1,31 +1,37 @@
-/* Copyright (C) 2000-2002, 2005-2006, 2008-2009 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2002, 2005-2006, 2008-2009, 2016, 2022 Free Software Foundation, Inc.
    This file is part of the GNU LIBICONV Library.
 
    The GNU LIBICONV Library is free software; you can redistribute it
-   and/or modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either version 2
+   and/or modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either version 2.1
    of the License, or (at your option) any later version.
 
    The GNU LIBICONV Library is distributed in the hope that it will be
    useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
+   You should have received a copy of the GNU Lesser General Public
    License along with the GNU LIBICONV Library; see the file COPYING.LIB.
-   If not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-   Fifth Floor, Boston, MA 02110-1301, USA.  */
+   If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Creates the flags.h include file. */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Avoid lots of warnings from "gcc -Wall". */
+#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 2) || __GNUC__ > 4
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 /* Consider all encodings, including the system dependent ones. */
 #define USE_AIX
 #define USE_OSF1
 #define USE_DOS
+#define USE_ZOS
 #define USE_EXTRA
 
 struct loop_funcs {};
@@ -104,6 +110,7 @@ int main ()
 #include "encodings_aix.def"
 #include "encodings_osf1.def"
 #include "encodings_dos.def"
+#include "encodings_zos.def"
 #include "encodings_extra.def"
 #undef DEFALIAS
 #undef DEFENCODING

@@ -1,5 +1,5 @@
-# setenv.m4 serial 24
-dnl Copyright (C) 2001-2004, 2006-2011 Free Software Foundation, Inc.
+# setenv.m4 serial 30
+dnl Copyright (C) 2001-2004, 2006-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -7,6 +7,7 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_FUNC_SETENV],
 [
   AC_REQUIRE([gl_FUNC_SETENV_SEPARATE])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   if test $ac_cv_func_setenv = no; then
     HAVE_SETENV=0
   else
@@ -33,10 +34,21 @@ AC_DEFUN([gl_FUNC_SETENV],
        return result;
       ]])],
       [gl_cv_func_setenv_works=yes], [gl_cv_func_setenv_works=no],
-      [gl_cv_func_setenv_works="guessing no"])])
-    if test "$gl_cv_func_setenv_works" != yes; then
-      REPLACE_SETENV=1
-    fi
+      [case "$host_os" in
+                        # Guess yes on glibc systems.
+         *-gnu* | gnu*) gl_cv_func_setenv_works="guessing yes" ;;
+                        # Guess yes on musl systems.
+         *-musl*)       gl_cv_func_setenv_works="guessing yes" ;;
+                        # If we don't know, obey --enable-cross-guesses.
+         *)             gl_cv_func_setenv_works="$gl_cross_guess_normal" ;;
+       esac
+      ])])
+    case "$gl_cv_func_setenv_works" in
+      *yes) ;;
+      *)
+        REPLACE_SETENV=1
+        ;;
+    esac
   fi
 ])
 
@@ -56,6 +68,7 @@ AC_DEFUN([gl_FUNC_SETENV_SEPARATE],
 AC_DEFUN([gl_FUNC_UNSETENV],
 [
   AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CHECK_DECLS_ONCE([unsetenv])
   if test $ac_cv_have_decl_unsetenv = no; then
     HAVE_DECL_UNSETENV=0
@@ -77,11 +90,7 @@ extern
 #ifdef __cplusplus
 "C"
 #endif
-#if defined(__STDC__) || defined(__cplusplus)
 int unsetenv (const char *name);
-#else
-int unsetenv();
-#endif
             ]],
             [[]])],
          [gt_cv_func_unsetenv_ret='int'],
@@ -97,32 +106,45 @@ int unsetenv();
     dnl OpenBSD 4.7 unsetenv("") does not fail.
     AC_CACHE_CHECK([whether unsetenv obeys POSIX],
       [gl_cv_func_unsetenv_works],
-      [AC_RUN_IFELSE([AC_LANG_PROGRAM([[
-       #include <stdlib.h>
-       #include <errno.h>
-       extern char **environ;
-      ]], [[
-       char entry1[] = "a=1";
-       char entry2[] = "b=2";
-       char *env[] = { entry1, entry2, NULL };
-       if (putenv ((char *) "a=1")) return 1;
-       if (putenv (entry2)) return 2;
-       entry2[0] = 'a';
-       unsetenv ("a");
-       if (getenv ("a")) return 3;
-       if (!unsetenv ("") || errno != EINVAL) return 4;
-       entry2[0] = 'b';
-       environ = env;
-       if (!getenv ("a")) return 5;
-       entry2[0] = 'a';
-       unsetenv ("a");
-       if (getenv ("a")) return 6;
-      ]])],
-      [gl_cv_func_unsetenv_works=yes], [gl_cv_func_unsetenv_works=no],
-      [gl_cv_func_unsetenv_works="guessing no"])])
-    if test "$gl_cv_func_unsetenv_works" != yes; then
-      REPLACE_UNSETENV=1
-    fi
+      [AC_RUN_IFELSE(
+         [AC_LANG_PROGRAM([[
+            #include <stdlib.h>
+            #include <errno.h>
+            extern char **environ;
+           ]GL_MDA_DEFINES],
+           [[
+            char entry1[] = "a=1";
+            char entry2[] = "b=2";
+            char *env[] = { entry1, entry2, NULL };
+            if (putenv ((char *) "a=1")) return 1;
+            if (putenv (entry2)) return 2;
+            entry2[0] = 'a';
+            unsetenv ("a");
+            if (getenv ("a")) return 3;
+            if (!unsetenv ("") || errno != EINVAL) return 4;
+            entry2[0] = 'b';
+            environ = env;
+            if (!getenv ("a")) return 5;
+            entry2[0] = 'a';
+            unsetenv ("a");
+            if (getenv ("a")) return 6;
+           ]])],
+         [gl_cv_func_unsetenv_works=yes],
+         [gl_cv_func_unsetenv_works=no],
+         [case "$host_os" in
+                    # Guess yes on glibc systems.
+            *-gnu*) gl_cv_func_unsetenv_works="guessing yes" ;;
+                    # If we don't know, obey --enable-cross-guesses.
+            *)      gl_cv_func_unsetenv_works="$gl_cross_guess_normal" ;;
+          esac
+         ])
+      ])
+    case "$gl_cv_func_unsetenv_works" in
+      *yes) ;;
+      *)
+        REPLACE_UNSETENV=1
+        ;;
+    esac
   fi
 ])
 

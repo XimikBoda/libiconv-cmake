@@ -1,26 +1,25 @@
-dnl Copyright (C) 1999-2011 Free Software Foundation, Inc.
+dnl Copyright (C) 1999-2011, 2016, 2018-2022 Free Software Foundation, Inc.
 dnl This file is part of the GNU LIBICONV Library.
 dnl
 dnl The GNU LIBICONV Library is free software; you can redistribute it
-dnl and/or modify it under the terms of the GNU Library General Public
-dnl License as published by the Free Software Foundation; either version 2
+dnl and/or modify it under the terms of the GNU Lesser General Public
+dnl License as published by the Free Software Foundation; either version 2.1
 dnl of the License, or (at your option) any later version.
 dnl
 dnl The GNU LIBICONV Library is distributed in the hope that it will be
 dnl useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-dnl Library General Public License for more details.
+dnl Lesser General Public License for more details.
 dnl
-dnl You should have received a copy of the GNU Library General Public
+dnl You should have received a copy of the GNU Lesser General Public
 dnl License along with the GNU LIBICONV Library; see the file COPYING.LIB.
-dnl If not, write to the Free Software Foundation, Inc., 51 Franklin Street,
-dnl Fifth Floor, Boston, MA 02110-1301, USA.
+dnl If not, see <https://www.gnu.org/licenses/>.
 
-AC_PREREQ([2.60])
-AC_INIT
+AC_PREREQ([2.64])
+AC_INIT([libiconv], [1.17])
 AC_CONFIG_SRCDIR([lib/iconv.c])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([libiconv], [1.14])
+AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h lib/config.h])
 AC_PROG_MAKE_SET
 
@@ -51,12 +50,13 @@ dnl           checks for UNIX variants that set DEFS
 
 gl_EARLY
 
-dnl           checks for installer options
+dnl           checks for build configuration
 
-gl_RELOCATABLE([srclib])
+LT_INIT([disable-static win32-dll])
+gl_RELOCATABLE
 
 AC_ARG_ENABLE([extra-encodings],
-  [AC_HELP_STRING([--enable-extra-encodings],
+  [AS_HELP_STRING([--enable-extra-encodings],
                   [add support for a few rarely used encodings])],
   [AC_DEFINE([ENABLE_EXTRA], 1,
              [Define to 1 to enable a few rarely used encodings.])
@@ -75,9 +75,7 @@ dnl           checks for compiler output filename suffixes
 AC_OBJEXT
 AC_EXEEXT
 
-dnl           check for build configuration
-
-LT_INIT([disable-static win32-dll])
+dnl           checks for build configuration
 
 dnl Prepares the libtool configuration for handling of Windows resources, and
 dnl sets the RC variable to a program that compiles Windows resource files.
@@ -107,7 +105,7 @@ gt_TYPE_WCHAR_T
 
 dnl           checks for header files, functions and declarations
 
-if test "$am_cv_func_iconv" = yes -a -n "$am_cv_proto_iconv_arg1"; then
+if test "$am_cv_func_iconv" = yes -a -n "$iconv_arg1"; then
   ICONV_CONST="const"
 else
   ICONV_CONST=""
@@ -154,7 +152,10 @@ gl_FCNTL_O_FLAGS
 
 AC_EILSEQ
 
-CL_WORDS_LITTLEENDIAN
+AC_C_BIGENDIAN([],
+  [AC_DEFINE([WORDS_LITTLEENDIAN], [1],
+     [Define if the machine's byte ordering is little endian.])
+  ])
 
 gl_INIT
 
@@ -199,7 +200,6 @@ AH_BOTTOM([
 ])
 
 AC_CONFIG_SUBDIRS([libcharset])
-AC_CONFIG_SUBDIRS([preload])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([lib/Makefile])
 AC_CONFIG_FILES([srclib/Makefile])

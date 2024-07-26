@@ -1,27 +1,27 @@
-/* Copyright (C) 1992, 1995-2003, 2005-2011 Free Software Foundation, Inc.
+/* Copyright (C) 1992, 1995-2003, 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #if !_LIBC
+/* Don't use __attribute__ __nonnull__ in this compilation unit.  Otherwise gcc
+   optimizes away the name == NULL test below.  */
+# define _GL_ARG_NONNULL(params)
+
 # define _GL_USE_STDLIB_ALLOC 1
 # include <config.h>
 #endif
-
-/* Don't use __attribute__ __nonnull__ in this compilation unit.  Otherwise gcc
-   optimizes away the name == NULL test below.  */
-#define _GL_ARG_NONNULL(params)
 
 #include <alloca.h>
 
@@ -49,7 +49,7 @@
 #endif
 
 #if _LIBC
-/* This lock protects against simultaneous modifications of `environ'.  */
+/* This lock protects against simultaneous modifications of 'environ'.  */
 # include <bits/libc-lock.h>
 __libc_lock_define_initialized (static, envlock)
 # define LOCK   __libc_lock_lock (envlock)
@@ -72,7 +72,7 @@ __libc_lock_define_initialized (static, envlock)
    values are from a small set.  Outside glibc this will eat up all
    memory after a while.  */
 #if defined _LIBC || (defined HAVE_SEARCH_H && defined HAVE_TSEARCH \
-                      && defined __GNUC__)
+                      && (defined __GNUC__ || defined __clang__))
 # define USE_TSEARCH    1
 # include <search.h>
 typedef int (*compar_fn_t) (const void *, const void *);
@@ -103,11 +103,11 @@ static void *known_values;
 static char **last_environ;
 
 
-/* This function is used by `setenv' and `putenv'.  The difference between
+/* This function is used by 'setenv' and 'putenv'.  The difference between
    the two functions is that for the former must create a new string which
-   is then placed in the environment, while the argument of `putenv'
+   is then placed in the environment, while the argument of 'putenv'
    must be used directly.  This is all complicated by the fact that we try
-   to reuse values once generated for a `setenv' call since we can never
+   to reuse values once generated for a 'setenv' call since we can never
    free the strings.  */
 int
 __add_to_environ (const char *name, const char *value, const char *combined,
@@ -299,7 +299,7 @@ setenv (const char *name, const char *value, int replace)
   return __add_to_environ (name, value, NULL, replace);
 }
 
-/* The `clearenv' was planned to be added to POSIX.1 but probably
+/* The 'clearenv' was planned to be added to POSIX.1 but probably
    never made it.  Nevertheless the POSIX.9 standard (POSIX bindings
    for Fortran 77) requires this function.  */
 int

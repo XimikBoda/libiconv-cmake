@@ -15,6 +15,10 @@ configure_file(
   ${Libiconv_SOURCE_DIR}/config.h.in
   ${Libiconv_BINARY_DIR}/config.h
 )
+configure_file(
+  ${Libiconv_SOURCE_DIR}/config.h.in
+  ${Libiconv_BINARY_DIR}/icconfig.h
+)
 include_directories(${Libiconv_SOURCE_DIR} ${Libiconv_BINARY_DIR})
 
 macro(header_injection_hack)
@@ -39,6 +43,7 @@ macro(header_injection_hack)
   else() 
      set(HAVE_VISIBILITY "FALSE")
   endif()
+  set(EILSEQ "42")
   configure_file(
     ${hack_INPUT}
     ${hack_OUTPUT}
@@ -70,6 +75,7 @@ set(${libname}_sources
 )
 
 add_library(${libname} ${${libname}_sources})
+target_include_directories(${libname} PUBLIC ${Libiconv_BINARY_DIR}/)
 list(APPEND Libiconv_TARGETS ${libname})
 list(APPEND Libiconv_headers ${Libiconv_BINARY_DIR}/localcharset.h)
 

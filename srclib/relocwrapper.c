@@ -1,10 +1,10 @@
 /* Relocating wrapper program.
-   Copyright (C) 2003, 2005-2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005-2007, 2009-2022 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -13,22 +13,47 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Dependencies:
    relocwrapper
     -> progname
     -> progreloc
-        -> areadlink
-           -> careadlinkat
+       -> stat
+          -> filename
+          -> pathmax
+          -> verify
+       -> areadlink
+          -> careadlinkat
              -> allocator
-             -> readlink
-        -> canonicalize-lgpl
-           -> malloca
-           -> readlink
+          -> readlink
+             -> stat
+       -> canonicalize-lgpl
+          -> libc-config
+          -> errno
+          -> fcntl-h
+          -> stdbool
+          -> sys_stat
+          -> unistd
+          -> eloop-threshold
+          -> filename
+          -> idx
+          -> intprops
+          -> scratch_buffer
+             -> malloc-posix
+             -> realloc-posix
+             -> free-posix
+          -> pathmax
+          -> mempcpy
+          -> rawmemchr
+          -> readlink
+          -> stat
+          -> double-slash-root
     -> relocatable
     -> setenv
        -> malloca
+    -> fprintf-posix [ignore, cut dependency tree here]
+    -> strerror [ignore, cut dependency tree here]
     -> c-ctype
 
    Macros that need to be set while compiling this file:
@@ -60,6 +85,7 @@
 
 /* Use the system functions, not the gnulib overrides in this file.  */
 #undef fprintf
+#undef strerror
 
 /* Return a copy of the filename, with an extra ".bin" at the end.
    More generally, it replaces "${EXEEXT}" at the end with ".bin${EXEEXT}".  */
