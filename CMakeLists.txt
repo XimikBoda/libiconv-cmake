@@ -44,6 +44,7 @@ macro(header_injection_hack)
      set(HAVE_VISIBILITY "FALSE")
   endif()
   set(EILSEQ "42")
+  set(ICONV_CONST "const")
   configure_file(
     ${hack_INPUT}
     ${hack_OUTPUT}
